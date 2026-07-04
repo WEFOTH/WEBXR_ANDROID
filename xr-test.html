@@ -56,6 +56,37 @@
         z-index: 10;
         display: none;
       }
+      /* Crosshair für AR Positionierung */
+      #crosshair {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        z-index: 5;
+        pointer-events: none;
+      }
+      #crosshair::before,
+      #crosshair::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.6);
+      }
+      #crosshair::before {
+        width: 40px;
+        height: 2px;
+        top: 50%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%);
+      }
+      #crosshair::after {
+        width: 2px;
+        height: 40px;
+        top: 50%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%);
+      }
     </style>
   </head>
   <body>
@@ -65,6 +96,7 @@
       <p id="xrSupport">XR wird geladen...</p>
     </div>
     <div id="arStatus">Bereit für AR</div>
+    <div id="crosshair"></div>
     <button id="placeBtn">Objekt platzieren</button>
 
     <script type="module">
@@ -95,6 +127,13 @@
       mesh.position.z = 0;
       scene.add(mesh);
 
+      // Grid Ebene für Visualisierung
+      const gridGeometry = new THREE.PlaneGeometry(10, 10);
+      const gridMaterial = new THREE.LineBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.4 });
+      const gridHelper = new THREE.GridHelper(10, 20, 0x4ade80, 0x666666);
+      gridHelper.position.y = -2.5;
+      scene.add(gridHelper);
+
       // Lichter
       const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
       scene.add(ambientLight);
@@ -115,6 +154,9 @@
       let placedObjects = [];
       const placeBtn = document.getElementById('placeBtn');
 
+      // Schatten-Material für Objekte
+      const shadowMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
+
       // Platzierungs-Button
       placeBtn.addEventListener('click', () => {
         if (isARActive) {
@@ -123,7 +165,17 @@
           newMesh.position.z -= 2;
           newMesh.scale.set(0.6, 0.6, 0.6);
           scene.add(newMesh);
-          placedObjects.push(newMesh);
+          
+          // Schatten unter dem Objekt hinzufügen
+          const shadowGeo = new THREE.PlaneGeometry(1.2, 1.2);
+          const shadow = new THREE.Mesh(shadowGeo, shadowMaterial);
+          shadow.rotation.x = -Math.PI / 2;
+          shadow.position.copy(newMesh.position);
+          shadow.position.y = newMesh.position.y - 0.6;
+          shadow.userData.parentObject = newMesh;
+          scene.add(shadow);
+          
+          placedObjects.push({mesh: newMesh, shadow: shadow});
 
           const arStatus = document.getElementById('arStatus');
           arStatus.textContent = `${placedObjects.length} Objekt(e) platziert!`;
@@ -151,8 +203,11 @@
         if (frame) {
           // Render platzierte Objekte
           placedObjects.forEach(obj => {
-            obj.rotation.x += 0.005;
-            obj.rotation.y += 0.01;
+            obj.mesh.rotation.x += 0.005;
+            obj.mesh.rotation.y += 0.01;
+            // Schatten unter Objekt aktualisieren
+            obj.shadow.position.copy(obj.mesh.position);
+            obj.shadow.position.y = obj.mesh.position.y - 0.6;
           });
         }
 
