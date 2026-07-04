@@ -142,37 +142,69 @@ function loadModelFromUrl(url, label = 'Modell') {
 }
 
 function loadModelFromFile(file) {
-  const url = URL.createObjectURL(file);
-  loadModelFromUrl(url, file.name);
+  if (!file) {
+    updateStatus('Keine Datei ausgewählt.');
+    return;
+  }
 
-  const loader = new GLTFLoader();
-  loader.load(
-    url,
-    (gltf) => {
-      const model = gltf.scene;
-      model.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
-      setModel(model);
-      URL.revokeObjectURL(url);
-    },
-    undefined,
-    (error) => {
-      console.error('Fehler beim Laden des Modells', error);
-      updateStatus(`Fehler: ${file.name} konnte nicht geladen werden.`);
-      window.alert('Das Modell konnte nicht geladen werden. Bitte prüfe, ob die Datei ein gültiges GLTF/GLB ist.');
-      URL.revokeObjectURL(url);
+  const isGlbOrGltf = file.name.toLowerCase().endsWith('.glb') || file.name.toLowerCase().endsWith('.gltf');
+  if (!isGlbOrGltf) {
+    updateStatus('Bitte nur .glb oder .gltf Dateien auswählen.');
+    window.alert('Bitte nur .glb oder .gltf Dateien auswählen.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const arrayBuffer = reader.result;
+    if (!arrayBuffer) {
+      updateStatus('Die Datei konnte nicht gelesen werden.');
+      return;
     }
-  );
+
+    const loader = new GLTFLoader();
+    const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+
+    loadModelFromUrl(url, file.name);
+
+    loader.load(
+      url,
+      (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+        setModel(model);
+        updateStatus(`${file.name} geladen.`);
+        URL.revokeObjectURL(url);
+      },
+      undefined,
+      (error) => {
+        console.error('Fehler beim Laden des Modells', error);
+        updateStatus(`Fehler: ${file.name} konnte nicht geladen werden.`);
+        window.alert('Das Modell konnte nicht geladen werden. Bitte prüfe, ob die Datei ein gültiges GLTF/GLB ist.');
+        URL.revokeObjectURL(url);
+      }
+    );
+  };
+
+  reader.onerror = () => {
+    updateStatus('Die Datei konnte nicht gelesen werden.');
+  };
+
+  reader.readAsArrayBuffer(file);
 }
 
 fileInput.addEventListener('change', (event) => {
   const file = event.target.files?.[0];
   if (file) {
     loadModelFromFile(file);
+  } else {
+    updateStatus('Keine Datei ausgewählt.');
   }
 });
 
