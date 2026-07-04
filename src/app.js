@@ -46,7 +46,7 @@ const loadSampleBtn = document.getElementById('loadSampleBtn');
 const resetViewBtn = document.getElementById('resetViewBtn');
 const statusText = document.getElementById('statusText');
 
-const sampleModelUrl = './Test.glb';
+const sampleModelUrl = '../assets/Test.glb';
 let activeModel = null;
 
 function createDefaultModel() {
