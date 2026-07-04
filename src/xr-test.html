@@ -30,7 +30,7 @@
       }
       #arStatus {
         position: absolute;
-        bottom: 5.5rem;
+        bottom: 8.5rem;
         left: 50%;
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.8);
@@ -55,6 +55,22 @@
         font-size: 1rem;
         z-index: 10;
         display: none;
+      }
+      /* Three.js ARButton ("START/STOP AR") setzt seine Position per Inline-Style
+         unten mittig – per !important über den Platzieren-Button verschieben */
+      #ARButton {
+        bottom: 4.75rem !important;
+      }
+      #scaleControl {
+        margin-top: 0.8rem;
+      }
+      #scaleControl label {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      #scaleControl input[type='range'] {
+        width: 100%;
+        accent-color: #4f46e5;
       }
       /* Crosshair für AR Positionierung */
       #crosshair {
@@ -94,6 +110,10 @@
       <h2>WebXR Test</h2>
       <p>Google Pixel XR Test</p>
       <p id="xrSupport">XR wird geladen...</p>
+      <div id="scaleControl">
+        <label for="scaleSlider">Größe: <span id="scaleValue">1.0×</span></label>
+        <input type="range" id="scaleSlider" min="0.2" max="3" step="0.1" value="1" />
+      </div>
     </div>
     <div id="arStatus">Bereit für AR</div>
     <div id="crosshair"></div>
@@ -151,6 +171,17 @@
       let placedObjects = [];
       const placeBtn = document.getElementById('placeBtn');
 
+      // Skalierungs-Slider für die Testkugel
+      const scaleSlider = document.getElementById('scaleSlider');
+      const scaleValue = document.getElementById('scaleValue');
+      let currentScale = 1;
+
+      scaleSlider.addEventListener('input', () => {
+        currentScale = parseFloat(scaleSlider.value);
+        scaleValue.textContent = `${currentScale.toFixed(1)}×`;
+        mesh.scale.setScalar(currentScale);
+      });
+
       // Schatten-Material für Objekte
       const shadowMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
 
@@ -164,19 +195,21 @@
           xrCamera.getWorldDirection(direction);
           xrCamera.getWorldPosition(newMesh.position);
           newMesh.position.addScaledVector(direction, 2);
-          newMesh.scale.set(0.6, 0.6, 0.6);
+          newMesh.scale.setScalar(0.6 * currentScale);
           scene.add(newMesh);
-          
+
           // Schatten unter dem Objekt hinzufügen
+          const shadowOffset = 0.6 * currentScale;
           const shadowGeo = new THREE.PlaneGeometry(1.2, 1.2);
           const shadow = new THREE.Mesh(shadowGeo, shadowMaterial);
           shadow.rotation.x = -Math.PI / 2;
+          shadow.scale.setScalar(currentScale);
           shadow.position.copy(newMesh.position);
-          shadow.position.y = newMesh.position.y - 0.6;
+          shadow.position.y = newMesh.position.y - shadowOffset;
           shadow.userData.parentObject = newMesh;
           scene.add(shadow);
-          
-          placedObjects.push({mesh: newMesh, shadow: shadow});
+
+          placedObjects.push({mesh: newMesh, shadow: shadow, shadowOffset: shadowOffset});
 
           const arStatus = document.getElementById('arStatus');
           arStatus.textContent = `${placedObjects.length} Objekt(e) platziert!`;
@@ -208,7 +241,7 @@
             obj.mesh.rotation.y += 0.01;
             // Schatten unter Objekt aktualisieren
             obj.shadow.position.copy(obj.mesh.position);
-            obj.shadow.position.y = obj.mesh.position.y - 0.6;
+            obj.shadow.position.y = obj.mesh.position.y - obj.shadowOffset;
           });
         }
 
