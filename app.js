@@ -118,10 +118,12 @@ function updateStatus(message) {
 function loadModelFromUrl(url, label = 'Modell') {
   const loader = new GLTFLoader();
   updateStatus(`Lade ${label}…`);
+  console.log(`Lade Modell von: ${url}`);
 
   loader.load(
     url,
     (gltf) => {
+      console.log(`${label} erfolgreich geladen`);
       const model = gltf.scene;
       model.traverse((child) => {
         if (child.isMesh) {
@@ -132,11 +134,14 @@ function loadModelFromUrl(url, label = 'Modell') {
       setModel(model);
       updateStatus(`${label} geladen.`);
     },
-    undefined,
+    (progress) => {
+      const percent = Math.round((progress.loaded / progress.total) * 100);
+      updateStatus(`Lade ${label}… ${percent}%`);
+    },
     (error) => {
       console.error('Fehler beim Laden des Modells', error);
       updateStatus(`Fehler: ${label} konnte nicht geladen werden.`);
-      window.alert('Das Modell konnte nicht geladen werden. Bitte prüfe, ob die Datei ein gültiges GLTF/GLB ist.');
+      console.error('Error details:', error.message);
     }
   );
 }
@@ -162,38 +167,14 @@ function loadModelFromFile(file) {
       return;
     }
 
-    const loader = new GLTFLoader();
     const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
-
     loadModelFromUrl(url, file.name);
-
-    loader.load(
-      url,
-      (gltf) => {
-        const model = gltf.scene;
-        model.traverse((child) => {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-        setModel(model);
-        updateStatus(`${file.name} geladen.`);
-        URL.revokeObjectURL(url);
-      },
-      undefined,
-      (error) => {
-        console.error('Fehler beim Laden des Modells', error);
-        updateStatus(`Fehler: ${file.name} konnte nicht geladen werden.`);
-        window.alert('Das Modell konnte nicht geladen werden. Bitte prüfe, ob die Datei ein gültiges GLTF/GLB ist.');
-        URL.revokeObjectURL(url);
-      }
-    );
   };
 
   reader.onerror = () => {
     updateStatus('Die Datei konnte nicht gelesen werden.');
+    console.error('FileReader error');
   };
 
   reader.readAsArrayBuffer(file);
@@ -216,7 +197,7 @@ resetViewBtn.addEventListener('click', resetView);
 
 setModel(createDefaultModel());
 resetView();
-loadModelFromUrl(sampleModelUrl, 'Testmodell');
+updateStatus('Klicke auf einen Button, um ein Modell zu laden.');
 
 const arButton = ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] });
 document.body.appendChild(arButton);
