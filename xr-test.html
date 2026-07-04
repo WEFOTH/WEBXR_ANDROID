@@ -30,7 +30,7 @@
       }
       #arStatus {
         position: absolute;
-        bottom: 1rem;
+        bottom: 2rem;
         left: 50%;
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.8);
@@ -39,6 +39,22 @@
         border-radius: 8px;
         font-weight: bold;
         z-index: 10;
+      }
+      #placeBtn {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        background: #4f46e5;
+        color: white;
+        border: 2px solid #6366f1;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 1rem;
+        z-index: 10;
+        display: none;
       }
     </style>
   </head>
@@ -49,6 +65,7 @@
       <p id="xrSupport">XR wird geladen...</p>
     </div>
     <div id="arStatus">Bereit für AR</div>
+    <button id="placeBtn">Objekt platzieren</button>
 
     <script type="module">
       import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -94,82 +111,49 @@
       });
       document.body.appendChild(arButton);
 
-      // AR Hit Test
-      const controller = renderer.xr.getController(0);
-      scene.add(controller);
-
-      let hitTestSource = null;
-      let hitTestSourceRequested = false;
-      let reticle = new THREE.Mesh(
-        new THREE.RingGeometry(0.15, 0.2, 32),
-        new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-      );
-      reticle.matrixAutoUpdate = false;
-      reticle.visible = false;
-      scene.add(reticle);
-
+      let isARActive = false;
       let placedObjects = [];
+      const placeBtn = document.getElementById('placeBtn');
 
-      controller.addEventListener('select', () => {
-        if (reticle.visible) {
-          const clonedMesh = mesh.clone();
-          clonedMesh.position.setFromMatrixPosition(reticle.matrix);
-          clonedMesh.scale.set(0.6, 0.6, 0.6);
-          scene.add(clonedMesh);
-          placedObjects.push(clonedMesh);
+      // Platzierungs-Button
+      placeBtn.addEventListener('click', () => {
+        if (isARActive) {
+          const newMesh = mesh.clone();
+          newMesh.position.copy(camera.getWorldPosition(new THREE.Vector3()));
+          newMesh.position.z -= 2;
+          newMesh.scale.set(0.6, 0.6, 0.6);
+          scene.add(newMesh);
+          placedObjects.push(newMesh);
 
-          const message = document.getElementById('arStatus');
-          message.textContent = `${placedObjects.length} Objekt(e) platziert - Tippe erneut!`;
+          const arStatus = document.getElementById('arStatus');
+          arStatus.textContent = `${placedObjects.length} Objekt(e) platziert!`;
           setTimeout(() => {
-            message.textContent = 'AR aktiv - Fläche suchen...';
+            arStatus.textContent = 'Tippe "Objekt platzieren" für mehr';
           }, 2000);
         }
       });
 
       renderer.xr.addEventListener('sessionstart', async () => {
-        const session = renderer.xr.getSession();
-        const space = await session.requestReferenceSpace('viewer');
-        const source = await session.requestHitTestSource({ space });
-        hitTestSource = source;
-
-        const message = document.getElementById('arStatus');
-        message.textContent = 'AR aktiv - Fläche suchen...';
+        isARActive = true;
+        placeBtn.style.display = 'block';
+        const arStatus = document.getElementById('arStatus');
+        arStatus.textContent = 'AR aktiv - tippe "Objekt platzieren"';
       });
 
       renderer.xr.addEventListener('sessionend', () => {
-        hitTestSource = null;
-        hitTestSourceRequested = false;
-        const message = document.getElementById('arStatus');
-        message.textContent = 'Bereit für AR';
+        isARActive = false;
+        placeBtn.style.display = 'none';
+        const arStatus = document.getElementById('arStatus');
+        arStatus.textContent = 'Bereit für AR';
       });
 
       function animate(time, frame) {
         if (frame) {
-          const baseSpace = renderer.xr.getReferenceSpace();
-
-          // Hit Testing für Reticle
-          if (hitTestSource) {
-            const hitTestResults = frame.getHitTestResults(hitTestSource);
-            if (hitTestResults.length > 0) {
-              const hit = hitTestResults[0];
-              const pose = hit.getPose(baseSpace);
-              if (pose) {
-                reticle.matrix.fromArray(pose.transform.matrix);
-                reticle.visible = true;
-              }
-            } else {
-              reticle.visible = false;
-            }
-          }
-
           // Render platzierte Objekte
           placedObjects.forEach(obj => {
             obj.rotation.x += 0.005;
             obj.rotation.y += 0.01;
           });
-        } else {
-          // Non-AR Mode
-          reticle.visible = false;
         }
 
         mesh.rotation.x += 0.005;
