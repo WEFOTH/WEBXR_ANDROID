@@ -162,7 +162,7 @@
 
       // AR Button
       const arButton = ARButton.createButton(renderer, {
-        optionalFeatures: ['dom-overlay'],
+        optionalFeatures: ['dom-overlay', 'hit-test', 'anchors'],
         domOverlay: { root: document.body }
       });
       document.body.appendChild(arButton);
@@ -170,6 +170,18 @@
       let isARActive = false;
       let placedObjects = [];
       const placeBtn = document.getElementById('placeBtn');
+
+      // Reticle markiert den per Hit-Test erkannten Punkt auf realen Flächen
+      const reticle = new THREE.Mesh(
+        new THREE.RingGeometry(0.08, 0.11, 32).rotateX(-Math.PI / 2),
+        new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+      );
+      reticle.matrixAutoUpdate = false;
+      reticle.visible = false;
+      scene.add(reticle);
+
+      let hitTestSource = null;
+      let lastHitResult = null;
 
       // Skalierungs-Slider für die Testkugel
       const scaleSlider = document.getElementById('scaleSlider');
@@ -180,43 +192,75 @@
         currentScale = parseFloat(scaleSlider.value);
         scaleValue.textContent = `${currentScale.toFixed(1)}×`;
         mesh.scale.setScalar(currentScale);
+        // Auch bereits platzierte Objekte mitskalieren
+        placedObjects.forEach(updatePlacedTransform);
       });
 
       // Schatten-Material für Objekte
       const shadowMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
 
+      // Position und Größe eines platzierten Objekts aus seinem
+      // Fixpunkt (basePoint) und dem aktuellen Sliderwert ableiten
+      function updatePlacedTransform(obj) {
+        const radius = 0.6 * currentScale;
+        obj.mesh.scale.setScalar(radius);
+        obj.shadow.scale.setScalar(currentScale);
+        obj.mesh.position.copy(obj.basePoint);
+        obj.shadow.position.copy(obj.basePoint);
+        if (obj.onSurface) {
+          obj.mesh.position.y += radius; // Kugel liegt auf der Fläche auf
+          obj.shadow.position.y += 0.01; // knapp darüber gegen Z-Fighting
+        } else {
+          obj.shadow.position.y -= radius; // Schatten unter schwebender Kugel
+        }
+      }
+
       // Platzierungs-Button
       placeBtn.addEventListener('click', () => {
-        if (isARActive) {
-          const newMesh = mesh.clone();
-          // 2 m in Blickrichtung platzieren (nicht entlang der Welt-Z-Achse)
+        if (!isARActive) return;
+
+        const newMesh = mesh.clone();
+        const basePoint = new THREE.Vector3();
+        const onSurface = reticle.visible;
+
+        if (onSurface) {
+          // Am Hit-Test-Punkt auf der realen Fläche fixieren
+          basePoint.setFromMatrixPosition(reticle.matrix);
+        } else {
+          // Fallback ohne Hit-Test: 2 m in Blickrichtung platzieren
           const xrCamera = renderer.xr.getCamera();
           const direction = new THREE.Vector3();
           xrCamera.getWorldDirection(direction);
-          xrCamera.getWorldPosition(newMesh.position);
-          newMesh.position.addScaledVector(direction, 2);
-          newMesh.scale.setScalar(0.6 * currentScale);
-          scene.add(newMesh);
-
-          // Schatten unter dem Objekt hinzufügen
-          const shadowOffset = 0.6 * currentScale;
-          const shadowGeo = new THREE.PlaneGeometry(1.2, 1.2);
-          const shadow = new THREE.Mesh(shadowGeo, shadowMaterial);
-          shadow.rotation.x = -Math.PI / 2;
-          shadow.scale.setScalar(currentScale);
-          shadow.position.copy(newMesh.position);
-          shadow.position.y = newMesh.position.y - shadowOffset;
-          shadow.userData.parentObject = newMesh;
-          scene.add(shadow);
-
-          placedObjects.push({mesh: newMesh, shadow: shadow, shadowOffset: shadowOffset});
-
-          const arStatus = document.getElementById('arStatus');
-          arStatus.textContent = `${placedObjects.length} Objekt(e) platziert!`;
-          setTimeout(() => {
-            arStatus.textContent = 'Tippe "Objekt platzieren" für mehr';
-          }, 2000);
+          xrCamera.getWorldPosition(basePoint);
+          basePoint.addScaledVector(direction, 2);
         }
+
+        scene.add(newMesh);
+
+        const shadowGeo = new THREE.PlaneGeometry(1.2, 1.2);
+        const shadow = new THREE.Mesh(shadowGeo, shadowMaterial);
+        shadow.rotation.x = -Math.PI / 2;
+        scene.add(shadow);
+
+        const placed = { mesh: newMesh, shadow: shadow, basePoint: basePoint, onSurface: onSurface, anchor: null };
+        updatePlacedTransform(placed);
+        placedObjects.push(placed);
+
+        // WebXR-Anker halten das Objekt am realen Punkt fest, auch wenn
+        // das Tracking die Umgebung später neu einschätzt
+        if (onSurface && lastHitResult && lastHitResult.createAnchor) {
+          lastHitResult.createAnchor().then((anchor) => {
+            placed.anchor = anchor;
+          }).catch(() => {
+            // Gerät ohne Anker-Unterstützung: Objekt bleibt an Weltkoordinate
+          });
+        }
+
+        const arStatus = document.getElementById('arStatus');
+        arStatus.textContent = `${placedObjects.length} Objekt(e) platziert!`;
+        setTimeout(() => {
+          arStatus.textContent = 'Tippe "Objekt platzieren" für mehr';
+        }, 2000);
       });
 
       renderer.xr.addEventListener('sessionstart', async () => {
@@ -224,26 +268,70 @@
         placeBtn.style.display = 'block';
         const arStatus = document.getElementById('arStatus');
         arStatus.textContent = 'AR aktiv - tippe "Objekt platzieren"';
+
+        // Hit-Test aus Blickrichtung (Bildschirmmitte) anfordern
+        try {
+          const session = renderer.xr.getSession();
+          const viewerSpace = await session.requestReferenceSpace('viewer');
+          hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
+        } catch (e) {
+          // Gerät ohne Hit-Test: Platzierung fällt auf Blickrichtung zurück
+          hitTestSource = null;
+        }
       });
 
       renderer.xr.addEventListener('sessionend', () => {
         isARActive = false;
         placeBtn.style.display = 'none';
+        hitTestSource = null;
+        lastHitResult = null;
+        reticle.visible = false;
+        // Anker gelten nur innerhalb der Session
+        placedObjects.forEach((obj) => { obj.anchor = null; });
         const arStatus = document.getElementById('arStatus');
         arStatus.textContent = 'Bereit für AR';
       });
 
       function animate(time, frame) {
         if (frame) {
-          // Render platzierte Objekte
-          placedObjects.forEach(obj => {
-            obj.mesh.rotation.x += 0.005;
-            obj.mesh.rotation.y += 0.01;
-            // Schatten unter Objekt aktualisieren
-            obj.shadow.position.copy(obj.mesh.position);
-            obj.shadow.position.y = obj.mesh.position.y - obj.shadowOffset;
+          const refSpace = renderer.xr.getReferenceSpace();
+
+          // Reticle auf der erkannten Fläche positionieren
+          if (hitTestSource) {
+            const hits = frame.getHitTestResults(hitTestSource);
+            if (hits.length > 0) {
+              lastHitResult = hits[0];
+              const pose = lastHitResult.getPose(refSpace);
+              reticle.visible = true;
+              reticle.matrix.fromArray(pose.transform.matrix);
+            } else {
+              lastHitResult = null;
+              reticle.visible = false;
+            }
+          }
+
+          // Verankerte Objekte an ihrer realen Position nachführen
+          placedObjects.forEach((obj) => {
+            if (!obj.anchor) return;
+            let pose = null;
+            try {
+              pose = frame.getPose(obj.anchor.anchorSpace, refSpace);
+            } catch (e) {
+              obj.anchor = null; // Anker wurde vom System verworfen
+            }
+            if (pose) {
+              const p = pose.transform.position;
+              obj.basePoint.set(p.x, p.y, p.z);
+              updatePlacedTransform(obj);
+            }
           });
         }
+
+        // Platzierte Objekte rotieren (Position bleibt fixiert)
+        placedObjects.forEach((obj) => {
+          obj.mesh.rotation.x += 0.005;
+          obj.mesh.rotation.y += 0.01;
+        });
 
         mesh.rotation.x += 0.005;
         mesh.rotation.y += 0.01;
