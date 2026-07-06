@@ -27,11 +27,11 @@ canvas {
 
 #hud {
   position: absolute;
-  inset: 1rem auto auto 1rem;
+  inset: 0.6rem 0.6rem auto auto;
   z-index: 10;
-  max-width: 360px;
-  padding: 1rem;
-  border-radius: 16px;
+  width: min(320px, calc(100vw - 1.2rem));
+  padding: 0.75rem;
+  border-radius: 14px;
   background: rgba(15, 23, 42, 0.82);
   backdrop-filter: blur(12px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
@@ -39,13 +39,13 @@ canvas {
 
 h1 {
   margin: 0 0 0.5rem;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
 }
 
 p {
-  margin: 0.2rem 0 0.8rem;
+  margin: 0.2rem 0 0.55rem;
   line-height: 1.45;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .controls {
@@ -80,10 +80,10 @@ p {
   width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 10px;
-  padding: 0.5rem 0.6rem;
+  padding: 0.42rem 0.55rem;
   background: rgba(30, 41, 59, 0.95);
   color: #f8fafc;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
 }
 
 .scaleStrip {
@@ -136,8 +136,8 @@ p {
 button {
   border: 0;
   border-radius: 999px;
-  padding: 0.7rem 0.95rem;
-  font-size: 0.95rem;
+  padding: 0.52rem 0.8rem;
+  font-size: 0.86rem;
   cursor: pointer;
   background: #4f46e5;
   color: white;
@@ -235,9 +235,8 @@ input[type="file"] {
 
 @media (max-width: 700px) {
   #hud {
-    max-width: calc(100vw - 1.2rem);
-    font-size: 0.95rem;
-    inset: 0.6rem auto auto 0.6rem;
+    width: calc(100vw - 1rem);
+    inset: 0.5rem 0.5rem auto auto;
   }
 
   .actionRow {
@@ -252,4 +251,67 @@ input[type="file"] {
     text-align: left;
     min-width: 0;
   }
+}
+
+/* AR-Modus: HUD schrumpft zu einer schmalen Bottom-Bar, damit die Umgebung sichtbar bleibt. */
+body.ar-active #hud {
+  inset: auto 0.5rem calc(0.5rem + env(safe-area-inset-bottom)) 0.5rem;
+  width: auto;
+  padding: 0.5rem 0.65rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+body.ar-active #hud h1,
+body.ar-active #hud > p,
+body.ar-active .quickActions,
+body.ar-active .inlineLabel,
+body.ar-active #objectSelect,
+body.ar-active .scaleStrip label {
+  display: none;
+}
+
+body.ar-active .actionRow.single {
+  margin: 0;
+}
+
+body.ar-active .scaleStrip {
+  margin: 0;
+  padding: 0.2rem 0.4rem;
+  grid-template-columns: 1fr auto;
+  background: transparent;
+  border: none;
+}
+
+body.ar-active .scaleStrip span {
+  text-align: right;
+  min-width: 3.2rem;
+}
+
+body.ar-active #statusText {
+  display: inline-block;
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+}
+
+body.ar-active .errorPanel {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+/* Stop-AR-Button von three.js ueber die Bar heben statt mittig ins Bild. */
+body.ar-active #ARButton {
+  bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
+  left: auto !important;
+  right: 0.75rem !important;
+  width: auto !important;
 }

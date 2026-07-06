@@ -62,6 +62,7 @@ const statusText = document.getElementById('statusText');
 const precisionText = document.getElementById('precisionText');
 const selectionText = document.getElementById('selectionText');
 const viewModeSelect = document.getElementById('viewModeSelect');
+const objectSelect = document.getElementById('objectSelect');
 const scaleSlider = document.getElementById('scaleSlider');
 const scaleValue = document.getElementById('scaleValue');
 
@@ -380,6 +381,31 @@ function updateSelectionText() {
   }
 }
 
+function syncObjectDropdown() {
+  if (!objectSelect) return;
+
+  objectSelect.innerHTML = '';
+  const noneOption = document.createElement('option');
+  noneOption.value = '';
+  noneOption.textContent = 'Kein Objekt';
+  objectSelect.appendChild(noneOption);
+
+  placedObjects.forEach((_, index) => {
+    const option = document.createElement('option');
+    option.value = String(index);
+    option.textContent = `Objekt ${index + 1}`;
+    objectSelect.appendChild(option);
+  });
+
+  if (selectedObjectIndex >= 0) {
+    objectSelect.value = String(selectedObjectIndex);
+  } else {
+    objectSelect.value = '';
+  }
+
+  objectSelect.disabled = placedObjects.length === 0;
+}
+
 function setObjectHighlight(placed, active) {
   placed.axes.visible = active;
   placed.group.traverse((child) => {
@@ -437,6 +463,7 @@ function selectObject(index) {
 
   updateSelectionText();
   updatePrecisionText();
+  syncObjectDropdown();
 }
 
 function createPlacedAxes() {
@@ -500,6 +527,7 @@ function placeModel() {
 
 renderer.xr.addEventListener('sessionstart', () => {
   isArSessionActive = true;
+  document.body.classList.add('ar-active');
 
   // Hintergrund/Fog würden das Kamerabild übermalen.
   scene.background = null;
@@ -531,6 +559,7 @@ renderer.xr.addEventListener('sessionstart', () => {
 
 renderer.xr.addEventListener('sessionend', () => {
   isArSessionActive = false;
+  document.body.classList.remove('ar-active');
 
   scene.background = defaultBackground;
   scene.fog = defaultFog;
@@ -550,6 +579,7 @@ renderer.xr.addEventListener('sessionend', () => {
   updateStatus('AR beendet.');
   updateSelectionText();
   updatePrecisionText();
+  syncObjectDropdown();
 });
 
 window.addEventListener('resize', () => {
@@ -579,6 +609,17 @@ if (viewModeSelect) {
   });
 }
 
+if (objectSelect) {
+  objectSelect.addEventListener('change', () => {
+    const value = objectSelect.value;
+    if (value === '') {
+      selectObject(-1);
+      return;
+    }
+    selectObject(Number(value));
+  });
+}
+
 if (scaleSlider) {
   scaleSlider.addEventListener('input', () => {
     currentScaleFactor = Number(scaleSlider.value);
@@ -595,6 +636,7 @@ if (scaleSlider) {
 
 updateSelectionText();
 updatePrecisionText();
+syncObjectDropdown();
 
 function animate(timestamp, frame) {
   if (frame && hitTestSource) {
