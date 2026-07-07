@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rhino zu WebXR</title>
+    <title>WALZ XR Modell-Visualisierung</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./styles.css" />
     <script type="importmap">
       {
@@ -15,9 +21,17 @@
     </script>
   </head>
   <body>
+    <div class="beam beam-a" aria-hidden="true"></div>
+    <div class="beam beam-b" aria-hidden="true"></div>
     <div id="hud">
-      <h1>Rhino → WebXR</h1>
-      <p>Lade ein .glb/.gltf und platziere per Tap im AR-Modus.</p>
+      <header class="brand-bar">
+        <img class="logo walz" src="../assets/branding/walz-logo-horizontal.svg" alt="WALZ Logo" />
+        <img class="logo oth" src="../assets/branding/oth-logo.svg" alt="OTH Regensburg Logo" />
+        <img class="logo interreg" src="../assets/branding/interreg-logo.jpg" alt="Interreg Logo" />
+      </header>
+      <p class="kicker">FORSCHUNGSVORHABEN</p>
+      <h1>WALZ XR Modell-Visualisierung</h1>
+      <p class="intro">Lade ein .glb/.gltf und platziere per Tap im AR-Modus.</p>
       <div class="controls quickActions">
         <label class="button" for="fileInput">Rhino-Modell laden</label>
         <input id="fileInput" type="file" accept=".glb,.gltf" />
@@ -37,6 +51,7 @@
         <select id="objectSelect" class="dropdown">
           <option value="">Kein Objekt</option>
         </select>
+        <button id="deleteObjectBtn" type="button" class="secondary">Objekt löschen</button>
       </div>
       <div class="scaleStrip">
         <label for="scaleSlider">Skalieren</label>

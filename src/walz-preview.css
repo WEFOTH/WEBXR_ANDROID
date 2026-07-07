@@ -1,0 +1,240 @@
+:root {
+  --walz-black: #0f0f10;
+  --walz-charcoal: #232326;
+  --walz-white: #ffffff;
+  --walz-orange: #f07d00;
+  --walz-orange-soft: #ffd8ad;
+  --walz-border: #d9d9dd;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", "Trebuchet MS", sans-serif;
+  color: var(--walz-black);
+  background: linear-gradient(180deg, #f7f7f7 0%, #ffffff 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.beam {
+  position: fixed;
+  pointer-events: none;
+  background: var(--walz-orange);
+  opacity: 0.14;
+  z-index: 0;
+}
+
+.beam-a {
+  width: 360px;
+  height: 40px;
+  left: -90px;
+  top: 120px;
+  transform: rotate(26deg);
+}
+
+.beam-b {
+  width: 220px;
+  height: 28px;
+  right: -40px;
+  top: 52px;
+  transform: rotate(-18deg);
+}
+
+.beam-c {
+  width: 300px;
+  height: 34px;
+  right: -70px;
+  bottom: 80px;
+  transform: rotate(14deg);
+}
+
+.layout {
+  width: min(980px, 94vw);
+  margin: 24px auto 42px;
+  position: relative;
+  z-index: 1;
+}
+
+.brand-bar {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.5fr) minmax(180px, 1fr) minmax(200px, 1.1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--walz-border);
+  border-radius: 8px;
+  border-top: 6px solid var(--walz-orange);
+  background: var(--walz-white);
+}
+
+.logo {
+  display: block;
+  max-height: 52px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo.walz {
+  max-width: 320px;
+}
+
+.logo.oth {
+  max-width: 230px;
+  justify-self: center;
+}
+
+.logo.interreg {
+  max-width: 240px;
+  border-radius: 4px;
+  justify-self: end;
+}
+
+.hero-card,
+.hud-preview {
+  margin-top: 16px;
+  padding: 22px;
+  border-radius: 8px;
+  border: 1px solid var(--walz-border);
+  background: var(--walz-white);
+  box-shadow: 0 8px 24px rgba(20, 20, 24, 0.08);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--walz-charcoal);
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  color: var(--walz-black);
+  line-height: 1.15;
+}
+
+h1::after {
+  content: "";
+  display: block;
+  width: 110px;
+  height: 5px;
+  margin-top: 12px;
+  background: var(--walz-orange);
+}
+
+.sub {
+  margin: 0;
+  max-width: 62ch;
+  line-height: 1.55;
+}
+
+.pictos {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+}
+
+.picto {
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid var(--walz-border);
+  border-left: 4px solid var(--walz-orange);
+  background: #fafafa;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+h2 {
+  margin-top: 0;
+  color: var(--walz-black);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button {
+  border: 1px solid #cc6b00;
+  border-radius: 999px;
+  background: var(--walz-orange);
+  color: var(--walz-black);
+  font-weight: 600;
+  padding: 10px 14px;
+}
+
+.control-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 90px minmax(160px, 1fr) 90px minmax(160px, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+select,
+input[type="range"] {
+  width: 100%;
+}
+
+.slider-row {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 90px minmax(180px, 1fr) 70px;
+  gap: 10px;
+  align-items: center;
+}
+
+.status {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 999px;
+  display: inline-block;
+  color: var(--walz-black);
+  background: var(--walz-orange-soft);
+  border: 1px solid #f0b36f;
+}
+
+.ci-notes {
+  margin-top: 12px;
+  border-left: 5px solid var(--walz-orange);
+  background: #fff8ef;
+  border-radius: 6px;
+  border: 1px solid #f1d6b8;
+  padding: 10px 12px;
+}
+
+@media (max-width: 760px) {
+  .brand-bar {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .logo.walz,
+  .logo.oth,
+  .logo.interreg {
+    max-width: min(100%, 320px);
+    max-height: 44px;
+    justify-self: start;
+  }
+
+  .control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slider-row {
+    grid-template-columns: 1fr;
+  }
+
+  .beam-a,
+  .beam-b,
+  .beam-c {
+    opacity: 0.08;
+  }
+}

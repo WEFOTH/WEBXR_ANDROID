@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WALZ UI Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./walz-preview.css" />
+  </head>
+  <body>
+    <div class="beam beam-a" aria-hidden="true"></div>
+    <div class="beam beam-b" aria-hidden="true"></div>
+    <div class="beam beam-c" aria-hidden="true"></div>
+
+    <main class="layout">
+      <header class="brand-bar">
+        <img class="logo walz" src="../assets/branding/walz-logo-horizontal.svg" alt="WALZ Logo" />
+        <img class="logo oth" src="../assets/branding/oth-logo.svg" alt="OTH Regensburg Logo" />
+        <img class="logo interreg" src="../assets/branding/interreg-logo.jpg" alt="Interreg Logo" />
+      </header>
+
+      <section class="hero-card">
+        <p class="kicker">FORSCHUNGSVORHABEN</p>
+        <h1>WALZ XR Modell-Visualisierung</h1>
+        <p class="sub">
+          Entwurfsvorschau der Oberfläche mit WALZ-Farbwelt, Partnerbranding und klarer Lesbarkeit für
+          Desktop und Smartphone.
+        </p>
+        <div class="pictos" aria-label="Piktogramm Vorschau">
+          <span class="picto">Hammer</span>
+          <span class="picto">Cursor</span>
+          <span class="picto">XR</span>
+        </div>
+      </section>
+
+      <section class="hud-preview">
+        <h2>Bedienpanel Vorschau</h2>
+        <div class="actions">
+          <button>Rhino-Modell laden</button>
+          <button>Beispiel laden</button>
+          <button>Ansicht zurücksetzen</button>
+        </div>
+
+        <div class="control-grid">
+          <label>Ansicht</label>
+          <select><option>Original</option></select>
+          <label>Objekt</label>
+          <select><option>Kein Objekt</option></select>
+        </div>
+
+        <div class="slider-row">
+          <label>Skalieren</label>
+          <input type="range" min="0" max="100" value="40" />
+          <span>1.00x</span>
+        </div>
+
+        <p class="status">Status: WALZ Design Preview aktiv</p>
+      </section>
+
+      <section class="ci-notes">
+        <p><strong>CI aus dem PDF umgesetzt:</strong> Inter-Typografie, Schwarz/Weiß als Basis, Orange als Akzentfarbe, Bauelemente als Gestaltungselement, Piktogramme sparsam eingesetzt.</p>
+      </section>
+    </main>
+  </body>
+</html>
