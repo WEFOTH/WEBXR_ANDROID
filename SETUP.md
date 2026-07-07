@@ -1,180 +1,64 @@
-# Setup & Installation Guide
+# Setup & lokale Entwicklung
+
+*Stand: 07.07.2026*
 
 ## Voraussetzungen
 
-- Windows / macOS / Linux
 - Git
-- Python 3.7+ (für QR-Code Generator, optional)
-- Google Pixel oder anderes AR-fähiges Gerät
-- Chrome Browser (95+)
+- Ein AR-fähiges Testgerät: Android-Smartphone mit Chrome (z. B. Google Pixel)
+- Optional: Python 3 (für `python -m http.server` bzw. den QR-Generator `make_qr.py`)
 
-## Lokale Installation
+## Lokal starten
 
-### 1. Repository klonen
-```bash
+```powershell
 git clone https://github.com/WEFOTH/WEBXR_TEST.git
 cd WEBXR_TEST
+.\serve.ps1                      # Windows; alternativ: python -m http.server 8000
 ```
 
-### 2. Lokalen Server starten
+→ App unter `http://localhost:8000/src/index.html`. Es gibt keinen Build-Schritt; Änderungen in `src/` sind nach einem Browser-Reload sichtbar.
 
-**Windows (PowerShell):**
-```powershell
-.\serve.ps1
-```
+**AR lokal testen geht nur eingeschränkt:** WebXR verlangt HTTPS (Ausnahme: `localhost` am Rechner selbst). Vom Handy aus `http://<rechner-ip>:8000` zu öffnen funktioniert daher **nicht** für AR. Praxis-Workflow: pushen und auf dem Handy die GitHub-Pages-URL (per QR-Code) testen.
 
-**macOS/Linux (Python):**
-```bash
-python -m http.server 8000
-```
+## Wo was liegt
 
-Server läuft dann unter: `http://localhost:8000/src/`
+| Datei | Zweck |
+|-------|-------|
+| `src/index.html` | Seite: HUD-Panel, Fehler-Panel, Import-Map |
+| `src/app.js` | gesamte Logik (Szene, Laden, AR, Platzierung, Anker) |
+| `src/styles.css` | Styling; AR-Kompaktleiste unter `body.ar-active` |
+| `assets/` | Beispielmodelle (Testmodell-Button lädt `Test.glb`) |
+| `qr-codes/` | QR-Einstiegsseite + PNG |
+| `src/xr-test.html` | veraltete Testseite, nicht mehr gepflegt |
 
-## Entwicklungs-Workflow
+## Eigenes Modell einbinden
 
-### Dateistruktur verstehen
+1. In Rhino als **.glb** exportieren (`Datei → Exportieren → GLTF`)
+2. Entweder zur Laufzeit über „Rhino-Modell laden" öffnen (kein Deploy nötig), oder
+3. dauerhaft: Datei nach `assets/` legen und in `src/app.js` die `sampleModelUrl` anpassen
 
-```
-src/                    → Quellcode (wird im Browser geladen)
-├── index.html          → Hauptanwendung
-├── xr-test.html        → AR Test-Seite
-├── app.js              → Logik
-└── styles.css          → Styling
-
-assets/                 → 3D-Modelle
-├── Test.glb            → Test-Modell
-└── TEST.gltf           → Alternative
-
-qr-codes/               → Mobile-Zugriff
-├── qrcode.html         → App QR-Link
-└── qrcode.png          → Aktueller QR-Code
-```
-
-### Änderungen testen
-
-1. **Lokal:** Änderungen in `src/` machen
-2. **Refresh:** Browser neu laden (F5)
-3. **Mobile:** IP-Adresse im Browser eingeben:
-   ```
-   http://<deine-computer-ip>:8000/src/index.html
-   ```
-
-### Code Änderungen
-
-Alle wesentlichen Dateien:
-
-| Datei | Bearbeite für |
-|-------|---|
-| `src/index.html` | HTML-Struktur, UI-Elemente |
-| `src/app.js` | 3D-Logik, Modell-Laden |
-| `src/xr-test.html` | AR-Funktionen, Platzierung |
-| `src/styles.css` | Design, Responsive Layout |
-
-## Modelle hinzufügen
-
-### Von Rhino exportieren
-
-1. Modell in Rhino öffnen
-2. **Datei → Exportieren**
-3. Format wählen: **GLTF (*.gltf;*.glb)**
-4. Speichere in `assets/`
-5. In `app.js` die URL anpassen:
-   ```javascript
-   const myModelUrl = '../assets/mein-modell.glb';
-   ```
-
-### Größe optimieren
-
-- ✅ **Ziel:** < 5MB pro Modell
-- ✅ **Tipp:** In Rhino → Exportoptionen → Geometrie komprimieren
-- ✅ **Format:** `.glb` ist kleiner als `.gltf`
+Zielgröße < 10 MB; .glb ist .gltf vorzuziehen (Texturen eingebettet).
 
 ## QR-Code aktualisieren
 
-Wenn sich die URL ändert (z.B. anderes Projekt):
+Nur nötig, wenn sich eine Seiten-**URL** ändert (der Inhalt hinter der URL darf sich beliebig ändern):
 
-```bash
-# QR-Code neu generieren
-python make_qr.py
+- `python make_qr.py`, oder QR-PNG über einen Generator erzeugen und in `qr-codes/qrcode.png` ablegen
+- Link/Text in `qr-codes/qrcode.html` mitpflegen
 
-# Dann QR-Bilder updaten
-```
+## Veröffentlichen
 
-## GitHub Pages Deployment
-
-### Automatisch (empfohlen)
-
-```bash
-# Änderungen committen und pushen
-git add .
-git commit -m "Deine Nachricht"
+```powershell
+git add <dateien>
+git commit -m "…"
 git push origin main
 ```
 
-GitHub Actions deploys dann automatisch! ✅
+GitHub Pages („pages build and deployment") veröffentlicht automatisch; nach 1–2 Minuten ist der Stand live. Details und Troubleshooting: [DEPLOYMENT.md](DEPLOYMENT.md).
 
-### Live URL
-```
-https://wefoth.github.io/WEBXR_TEST/src/index.html
-```
+## Typische Stolpersteine
 
-## Häufige Probleme
-
-### 🔴 Modell lädt nicht
-**Symptome:** Grauer Bildschirm, keine Fehlermeldung
-
-**Lösungen:**
-1. Browser-Konsole öffnen (F12 → Console)
-2. Fehler-Meldungen lesen
-3. Datei-Pfad prüfen (`../assets/modell.glb`)
-4. Modell-Format prüfen (`.glb` oder `.gltf`)
-
-### 🔴 AR funktioniert nicht
-**Symptome:** AR-Button sichtbar aber nicht klickbar
-
-**Lösungen:**
-1. Chrome verwenden (nicht andere Browser!)
-2. HTTPS prüfen (lokal OK, online muss HTTPS sein)
-3. AR-Support prüfen: Info-Box sollte "✓ AR wird unterstützt" zeigen
-4. Gerät neu starten
-
-### 🔴 Mobile Cache Problem
-**Symptome:** Alte Version wird angezeigt nach Code-Änderung
-
-**Lösungen:**
-1. Hard-Reload: `Ctrl+Shift+R` (Windows) oder `Cmd+Shift+R` (Mac)
-2. Incognito-Modus öffnen
-3. Browser-Cache leeren in Chrome-Einstellungen
-
-### 🔴 Button überlagern sich
-→ Siehe `src/xr-test.html`, CSS wird korrekt positioniert (bottom: 5.5rem für Status, bottom: 0.5rem für Button)
-
-## Tipps für optimale Entwicklung
-
-### Debugging in VS Code
-```javascript
-// Console Logs verwenden
-console.log('Modell geladen:', model);
-console.error('Fehler:', error);
-```
-
-### Editor empfehlungen
-- **VS Code** mit Erweiterungen:
-  - `Three.js Snippets`
-  - `Prettier` (Code Formatter)
-  - `Live Server` (Alternative zu serve.ps1)
-
-### Performance testen
-- **Chrome DevTools** (F12 → Performance)
-- **Chrome DevTools** (F12 → Network) für Modell-Größe
-
-## Nächste Schritte
-
-1. ✅ Setup erfolgreich? → Repository testen
-2. ✅ Änderungen machen? → `src/app.js` bearbeiten
-3. ✅ Neues Modell? → `assets/` Ordner nutzen
-4. ✅ Publizieren? → `git push` zu GitHub
-
----
-
-**Fragen?** → Siehe [PROJECT_SPEC.md](PROJECT_SPEC.md) für technische Details
+- **Handy zeigt alten Stand:** Chrome-Cache → Seite hart neu laden oder Websitedaten löschen
+- **Modell lädt nicht:** Fehler-Panel auf der Seite lesen; Format/Größe prüfen
+- **AR-Button fehlt/inaktiv:** Gerät/Browser prüfen (Android + Chrome), HTTPS-URL verwenden
+- **iPhone:** zeigt nur die 3D-Vorschau — iOS unterstützt kein WebXR-AR (siehe README, Geräte-Tabelle)

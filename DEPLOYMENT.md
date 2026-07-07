@@ -1,258 +1,57 @@
-# Deployment Guide: GitHub Pages
+# Deployment: GitHub Pages
 
-## Overview
+*Stand: 07.07.2026*
 
-Diese Anwendung wird automatisch auf GitHub Pages deployed wenn Code in den `main` Branch gepusht wird.
+**Live-URL:** https://wefoth.github.io/WEBXR_TEST/src/index.html
 
-**Live URL:** https://wefoth.github.io/WEBXR_TEST/
+## Konfiguration
 
-## Automatisches Deployment (Branch-Deploy)
+GitHub Pages ist auf **„Deploy from a branch"** eingestellt (Branch `main`, Ordner `/ (root)`). GitHubs eingebauter Workflow „pages build and deployment" veröffentlicht bei jedem Push automatisch den kompletten Repo-Inhalt — ein eigener Actions-Workflow ist **nicht** nötig und wurde bewusst entfernt (er scheiterte, weil die Pages-Quelle nicht auf „GitHub Actions" steht).
 
-### Konfiguration
+Wichtige Dateien:
 
-GitHub Pages ist auf **"Deploy from a branch"** (main, Root) eingestellt.
-Es ist **kein eigener Workflow nötig** – GitHubs eingebauter
-"pages build and deployment"-Workflow veröffentlicht bei jedem Push
-automatisch den kompletten Repo-Inhalt.
+- `.nojekyll` im Root — verhindert Jekyll-Verarbeitung, muss vorhanden bleiben
+- relative Pfade verwenden (`../assets/…`), keine absoluten (`/assets/…` bricht unter `/WEBXR_TEST/`)
 
-> Hinweis: Ein früherer eigener Workflow (`.github/workflows/deploy-pages.yml`
-> mit `actions/deploy-pages`) wurde entfernt. Er funktioniert nur, wenn die
-> Pages-Quelle auf "GitHub Actions" umgestellt wird, und schlug deshalb
-> bei jedem Push fehl.
+## Ablauf
 
-### Wie es funktioniert
-
-1. **Code pushen:**
-   ```bash
-   git add .
-   git commit -m "Deine Nachricht"
-   git push origin main
-   ```
-
-2. **"pages build and deployment" startet automatisch** (im Actions Tab sichtbar)
-
-3. **Build & Deploy** (< 1 Minute)
-
-4. **Live unter:** https://wefoth.github.io/WEBXR_TEST/ ✅
-
-## Manuelle Konfiguration (einmalig)
-
-Falls Actions noch nicht konfiguriert:
-
-### 1. Repo Settings
-```
-GitHub Repo → Settings → Pages
-├── Source: Deploy from a branch
-├── Branch: main
-└── Folder: / (root)
+```powershell
+git push origin main
+# → Actions-Tab: "pages build and deployment" läuft
+# → nach ~1–2 Minuten live
 ```
 
-### 2. Branch Protection (optional aber empfohlen)
-```
-Repo → Settings → Branches
-├── Branch name pattern: main
-├── Require a pull request review: ✓
-└── Require status checks: ✓ (Actions)
-```
-
-## Dateien & Verzeichnisse
-
-### Wichtig: Root-Level Access
-
-GitHub Pages served Dateien vom Root (`/`), daher:
-
-```
-Repository Root
-├── src/                 → https://.../ src/ index.html
-├── assets/              → https://.../assets/Test.glb
-├── qr-codes/           → https://.../qr-codes/ qrcode.html
-├── .nojekyll           → GitHub Pages Skip Processing
-├── .github/            → Actions Configuration
-└── *.md                → Dokumentation
-```
-
-**Wichtig:** `.nojekyll` Datei muss im Root sein!
-
-### Path Resolution in HTML
-
-Wenn von `src/index.html` auf `assets/Test.glb` zugegriffen wird:
-
-```javascript
-// ✅ Lokal (localhost:8000)
-const modelUrl = '../assets/Test.glb';
-// → http://localhost:8000/assets/Test.glb
-
-// ✅ GitHub Pages
-const modelUrl = '../assets/Test.glb';
-// → https://wefoth.github.io/WEBXR_TEST/assets/Test.glb
-```
-
-## HTTPS Anforderung
-
-WebXR funktioniert **NUR mit HTTPS** (außer localhost).
-
-### GitHub Pages
-- ✅ HTTPS automatisch enabled
-- ✅ Certificate automatisch verwaltet
-- ✅ Keine zusätzliche Konfiguration nötig
-
-### Lokale Entwicklung
-- ✅ `http://localhost:8000` funktioniert auch ohne HTTPS
-- ✅ Aber: IP-Adresse `http://192.168.x.x:8000` braucht HTTPS um WebXR zu testen
-
-**Lösung:** Lokal testen mit GitHub Pages URL auf dem Pixel!
-
-## Deployment Checklist
-
-Vor jedem Push:
-
-- [ ] Tests lokal durchführt (F5, Chrome DevTools)
-- [ ] Modell-Paths korrekt (`../assets/...`)
-- [ ] Keine absoluten Pfade (`/assets/...` funktioniert nicht!)
-- [ ] CSS/JS Syntax korrekt (F12 → Console auf Fehler prüfen)
-- [ ] Mobile responsiv getestet
-- [ ] QR-Code Links aktuell
+WebXR setzt HTTPS voraus — GitHub Pages liefert das automatisch.
 
 ## Troubleshooting
 
-### 🔴 Seite zeigt 404
-**Problem:** File wird nicht gefunden
+### Seite zeigt alten Stand
+1. 1–2 Minuten warten (Deploy + CDN)
+2. Hard-Reload am Gerät; notfalls Websitedaten löschen (Chrome cached aggressiv)
+3. Prüfen, ob der Push wirklich auf `main` gelandet ist
 
-**Lösungen:**
-1. URL prüfen: `https://wefoth.github.io/WEBXR_TEST/src/index.html`
-2. `.nojekyll` vorhanden? (verhindert Jekyll Processing)
-3. 5 Min warten (Deployment nicht sofort live)
-4. Browser Cache: Hard Reload (Ctrl+Shift+R)
+### „pages build and deployment" schlägt fehl
+Kommt vor — auch **transient auf GitHub-Seite** (beobachtet am 06.07.2026: Build ok, Deploy-Schritt failed).
 
-### 🔴 Modelle laden nicht
-**Problem:** 404 bei Modell-Load
+1. Actions-Tab öffnen: https://github.com/WEFOTH/WEBXR_TEST/actions → fehlgeschlagenen Lauf ansehen
+2. Wenn nur der Deploy-Schritt scheitert: leeren Commit pushen, um den Lauf neu anzustoßen:
+   ```powershell
+   git commit --allow-empty -m "Retrigger Pages deploy"
+   git push
+   ```
+3. Ob der neue Stand live ist, lässt sich am schnellsten per Abruf prüfen (Suchstring aus dem letzten Commit in `src/app.js` suchen)
 
-**Lösungen:**
-1. Dateipfad prüfen in `app.js`: `../assets/Test.glb`
-2. Modell in `assets/` Upload? (GitHub Actions zeigt Fehler)
-3. Modell-Dateigröße? (sollte < 10MB sein)
+### 404 auf einer Unterseite
+- URL exakt prüfen (Groß-/Kleinschreibung zählt)
+- `.nojekyll` vorhanden?
 
-```bash
-# Lokal Dateigröße prüfen:
-ls -lh assets/
-```
+## Rollback
 
-### 🔴 GitHub Actions schlägt fehl
-**Problem:** Rotes X in Actions Tab
-
-**Lösungen:**
-1. Actions Tab öffnen: https://github.com/WEFOTH/WEBXR_TEST/actions
-2. Fehlgeschlagenen Workflow klicken
-3. Error-Details lesen
-4. Common Errors:
-   - Syntax errors in `.github/workflows/deploy-pages.yml`
-   - Protected branch requirements
-   - File encoding issues
-
-### 🔴 WebXR funktioniert nicht online
-**Problem:** AR-Button sichtbar aber nicht nutzbar
-
-**Lösungen:**
-1. HTTPS prüfen (sollte 🔒 im URL-Bar sein)
-2. Chrome Version aktuell? (95+)
-3. Immersive-ar Support? (Info-Box prüfen)
-4. DevTools → Console auf Fehler prüfen
-
-## Performance Monitoring
-
-### GitHub Pages Stats
-```
-Repo → Insights → Traffic → Pages
-```
-
-Zeigt:
-- Besucherzahlen
-- Traffic pro Seite
-- Bandwidth-Verbrauch
-
-### Größe überwachen
-
-```bash
-# Lokal testen wie größe für Deployment:
-du -sh assets/
-# → sollte < 50MB total sein
-```
-
-## Branches & Workflows
-
-### Main Branch
-- **Deployment:** Automatisch
-- **Status:** Produkion
-- **Revert möglich:** Ja, mit `git revert`
-
-### Testing (optional)
-```bash
-# Feature Branch erstellen
-git checkout -b feature/neue-funktion
-
-# Testen...
-git push origin feature/neue-funktion
-
-# Wenn OK → Pull Request + Merge zu main
-```
-
-## CMS Alternativen (nicht nötig hier!)
-
-GitHub Pages unterstützt auch:
-- ⏸️ Jekyll (nicht nötig, `.nojekyll` disabelt es)
-- ⏸️ Hugo / Gatsby (zu komplex für dieses Projekt)
-- ✅ Plain HTML (das ist was wir verwenden!)
-
-## Sicherheit & Privacy
-
-### Secrets (nicht vorhanden, aber wenn nötig)
-```
-Repo → Settings → Secrets and Variables → Actions
-```
-
-### Branch Protection
-```
-Repo → Settings → Branches → main → Add Rule
-├── Require status checks: ✓
-├── Require pull requests: ✓
-└── Dismiss stale reviews: ✓
-```
-
-## Rollback / Revert
-
-Falls Deployment schiefgeht:
-
-```bash
-# Letzten Commit anschauen
-git log --oneline
-
-# Zu älterem Commit zurück
+```powershell
 git revert <commit-hash>
 git push origin main
-
-# GitHub Pages updated automatisch!
 ```
 
-## Analytics Setup (optional)
+## Hinweis Quest-Repo
 
-Wenn Besucher-Daten gewünscht:
-
-1. **Google Analytics:**
-   ```html
-   <!-- In src/index.html HEAD -->
-   <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-   ```
-
-2. **GitHub Pages Built-in:**
-   - Kostenlos in Repo → Insights → Traffic
-
-## Weitere Resources
-
-- [GitHub Pages Docs](https://docs.github.com/en/pages)
-- [GitHub Actions Docs](https://docs.github.com/en/actions)
-- [WebXR HTTPS Requirement](https://www.w3.org/TR/webxr/)
-
----
-
-**Status:** ✅ Automatisches Deployment aktiv  
-**Zuletzt aktualisiert:** Juli 2026
+Das Schwester-Repo [WEBXR_QUEST](https://github.com/WEFOTH/WEBXR_QUEST) ist identisch aufgesetzt (Branch-Deploy von `main`): Live-URL `https://wefoth.github.io/WEBXR_QUEST/src/index.html`. Gemeinsame Änderungen dort per `git fetch upstream && git merge upstream/main` übernehmen und pushen.

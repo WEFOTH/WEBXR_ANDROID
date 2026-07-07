@@ -1,323 +1,104 @@
-# WebXR Rhino 3D Viewer 🚀
+# Rhino → WebXR (Smartphone-AR)
 
-Ein modernes **Augmented Reality (AR)** System zum Visualisieren und Platzieren von 3D-Modellen (Rhino-Exporte) auf mobilen Geräten wie Google Pixel.
+Web-App zum Visualisieren und Platzieren von Rhino-3D-Modellen (.glb/.gltf) in Augmented Reality — direkt im Browser, ohne App-Installation.
 
-**Live Demo:** https://wefoth.github.io/WEBXR_TEST/src/index.html
+**Live-Demo:** https://wefoth.github.io/WEBXR_TEST/src/index.html
+**QR-Code zum Scannen:** https://wefoth.github.io/WEBXR_TEST/qr-codes/qrcode.html
 
-## Features ✨
+> **Meta-Quest-Variante:** Die Weiterentwicklung für Meta Quest (Passthrough-MR, Ebenen-Snap, persistente Anker) liegt im Schwester-Repo [WEBXR_QUEST](https://github.com/WEFOTH/WEBXR_QUEST). Dieses Repo ist dessen Upstream: gemeinsame Verbesserungen entstehen hier und werden per `git merge upstream/main` übernommen.
 
-### 🎯 Hauptfunktionen
-- ✅ **3D-Modelle laden** (.glb, .gltf) vom Gerät oder aus der Cloud
-- ✅ **Augmented Reality** - Modelle in realer Umgebung anzeigen
-- ✅ **Hit-Test-Platzierung** - Ring zeigt erkannte Flächen, Tippen platziert das Modell
-- ✅ **Visuelle Hilfsmittel** - Platzierungs-Ring, Grid, Schatten für präzises Platzieren
-- ✅ **Rhino-Integration** - Direkt Rhino-Modelle exportieren und laden
+## Funktionen
 
-### 📱 Mobiloptimiert
-- Responsive Design für alle Bildschirmgrößen
-- QR-Code für schnellen Zugriff vom Handy
-- Funktioniert auf Google Pixel mit Chrome
-- Automatische Modell-Skalierung und Zentrierung
+### 3D-Vorschau (Desktop & Mobil)
+- **Modell laden:** eigenes .glb/.gltf per Datei-Dialog oder eingebautes Testmodell
+- **Orbit-Navigation** (drehen/zoomen), „Ansicht zurücksetzen"
+- Automatische Skalierung und Zentrierung des Modells (Unterkante auf Boden)
 
-### ⚡ Technologie
-- **Three.js 0.160.0** - 3D-Rendering
-- **WebXR API** - Browser-native AR
-- **GitHub Pages** - HTTPS Hosting
-- **Keine Server** - Reine Client-Side Anwendung
+### AR-Modus (Android + Chrome)
+- **Platzieren:** Hit-Test-Ring zeigt erkannte Flächen, Tippen platziert das Modell (bis zu 24 Objekte)
+- **Verankerung:** platzierte Objekte werden per WebXR Anchors API an der realen Position fixiert und driften nicht, wenn das Gerät sein Tracking korrigiert
+- **Automatische Ausrichtung:** Objekte drehen sich beim Platzieren mit der Vorderseite zum Betrachter
+- **Auswählen:** Tap auf ein platziertes Objekt (gelbe Hervorhebung) oder Auswahl per Dropdown
+- **Bearbeiten pro Objekt:** Ansicht (Original/Farbe/Wireframe/Metall/Matt), Skalierung (0,25–3×), Drehung (±180° in 5°-Schritten)
+- **Kompakte AR-Leiste:** Im AR-Modus schrumpft die Bedienoberfläche auf eine schmale Leiste am unteren Rand, damit die Umgebung sichtbar bleibt
 
-## Quick Start 🚀
+### Robustheit
+- Fehler-Panel direkt auf der Seite (zeigt JavaScript-/Lade-Fehler ohne DevTools)
+- Fallback-Platzierung 1,5 m in Blickrichtung, wenn kein Hit-Test verfügbar ist
+- Anchors/DOM-Overlay sind optionale Features — fehlen sie, läuft die App trotzdem
 
-### Online testen (sofort)
-```
-Handy: Scan QR-Code oder öffne:
-https://wefoth.github.io/WEBXR_TEST/qr-codes/qrcode.html
-```
+## Bedienung (Kurzfassung)
 
-### Lokal entwickeln (auf deinem Computer)
-```bash
-# 1. Repository klonen
-git clone https://github.com/WEFOTH/WEBXR_TEST.git
-cd WEBXR_TEST
+1. Seite auf dem Handy öffnen (QR-Code scannen) — Android mit Chrome
+2. Modell laden („Rhino-Modell laden" oder „Testmodell laden")
+3. „START AR" tippen, Kamera-Berechtigung erteilen
+4. Handy langsam bewegen, bis der Ring auf einer Fläche erscheint
+5. Tippen = platzieren; auf ein Objekt tippen = auswählen
+6. Untere Leiste: Ansicht, Skalierung, Drehung des ausgewählten Objekts anpassen
 
-# 2. Server starten (Windows)
-.\serve.ps1
+### Rhino-Export
+`Rhino → Datei → Exportieren → GLTF (*.glb)` — .glb bettet Texturen ein und ist zuverlässiger als .gltf mit externen Dateien. Zielgröße < 10 MB.
 
-# 3. Browser öffnen
-http://localhost:8000/src/index.html
-```
+## Geräte-Unterstützung
 
-Siehe [SETUP.md](SETUP.md) für detaillierte Anleitung.
+| Plattform | AR-Modus | 3D-Vorschau |
+|-----------|----------|-------------|
+| Android + Chrome/Chromium (z. B. Pixel) | ✅ | ✅ |
+| Meta Quest Browser | ✅ (siehe [WEBXR_QUEST](https://github.com/WEFOTH/WEBXR_QUEST)) | ✅ |
+| iPhone/iPad (Safari & alle iOS-Browser) | ❌ kein WebXR-AR¹ | ✅ |
+| Desktop-Browser | ❌ | ✅ |
 
-## Projektstruktur 📁
+¹ Apple unterstützt WebXR `immersive-ar` auf iOS nicht. Möglicher Ausweg: AR Quick Look mit .usdz-Export (siehe [PROJEKTSTAND.md](PROJEKTSTAND.md), offene Punkte).
+
+## Projektstruktur
 
 ```
 WEBXR_TEST/
-├── src/                    # 🔧 Quellcode (ändern hier!)
-│   ├── index.html         # Hauptanwendung
-│   ├── xr-test.html       # AR Test-Seite (einfacher Funktionstest)
-│   ├── app.js             # 3D-Logik + AR-Platzierung
-│   └── styles.css         # Styling
-│
-├── assets/                # 📦 3D-Modelle
-│   ├── Test.glb           # Standard Test-Modell
-│   └── TEST.gltf          # Alternative Format
-│
-├── qr-codes/              # 📲 Mobile-Zugriff
-│   ├── qrcode.html        # App QR-Link
-│   └── qrcode.png         # Aktueller QR-Code
-│
-├── docs/                  # 📷 Screenshots
-│
-└── 📄 Wurzel
-    ├── README.md          # Diese Datei
-    ├── index.html         # Weiterleitung zu src/index.html
-    ├── PROJECT_SPEC.md    # Technische Specs
-    ├── SETUP.md           # Installation Guide
-    ├── ARCHITECTURE.md    # Technische Details
-    ├── DEPLOYMENT.md      # GitHub Pages Deploy
-    ├── make_qr.py         # QR-Generator
-    ├── serve.ps1          # Dev-Server
-    └── .nojekyll          # GitHub Pages Config
+├── src/
+│   ├── index.html        # App-Seite (HUD, Fehler-Panel)
+│   ├── app.js            # Gesamte Logik: Szene, Laden, AR, Platzierung, Anker
+│   ├── styles.css        # Styling inkl. AR-Kompaktleiste (body.ar-active)
+│   └── xr-test.html      # Veraltete Testseite (nicht mehr gepflegt)
+├── assets/               # Beispielmodelle (Test.glb, Test_01.glb, TEST.gltf)
+├── qr-codes/             # QR-Einstieg fürs Handy (qrcode.html + qrcode.png)
+├── docs/                 # Screenshots
+├── index.html            # Weiterleitung auf src/index.html
+├── serve.ps1             # Lokaler Dev-Server (Windows)
+├── make_qr.py            # QR-Generator (Python, optional)
+└── *.md                  # Dokumentation (siehe unten)
 ```
 
-## Wie es funktioniert 🔧
+## Entwicklung
 
-### 1️⃣ Modell laden (3D-Ansicht)
-```
-Rhino Modell → Exportieren als .glb
-    ↓
-App lädt .glb Datei
-    ↓
-Three.js rendert 3D-Szene
-    ↓
-Browser zeigt 3D-Ansicht mit OrbitControls
+```powershell
+git clone https://github.com/WEFOTH/WEBXR_TEST.git
+cd WEBXR_TEST
+.\serve.ps1                # oder: python -m http.server 8000
+# → http://localhost:8000/src/index.html
 ```
 
-### 2️⃣ Augmented Reality aktivieren
-```
-Tippe auf "START AR"
-    ↓
-Browser startet AR-Session (Kamerabild wird sichtbar)
-    ↓
-Handy langsam bewegen, bis der Ring auf einer Fläche erscheint
-    ↓
-Auf den Bildschirm tippen → Modell steht auf der Fläche
-```
+Kein Build-Schritt, keine Abhängigkeiten: three.js 0.160 kommt per CDN/Import-Map. Deployment = `git push origin main` → GitHub Pages („Deploy from a branch", Details in [DEPLOYMENT.md](DEPLOYMENT.md)).
 
-### 3️⃣ Platzierung verfeinern
-```
-Ring (Reticle)  = erkannte reale Fläche (Boden, Tisch, …)
-Ohne Ring       = Fallback: Modell landet 1,5 m in Blickrichtung
-    ↓
-Tipp: Mehrmals tippen um mehrere Objekte zu platzieren
-```
+**Wichtig:** WebXR braucht HTTPS. Auf dem Handy daher über die GitHub-Pages-URL testen (localhost funktioniert nur am Rechner selbst). Ändert sich eine Seiten-URL, den QR-Code in `qr-codes/` mit regenerieren.
 
-## Häufig gefragt ❓
-
-**F: Wie lade ich mein Rhino-Modell?**
-```
-1. Rhino öffnen → Datei → Exportieren
-2. Format: GLTF (*.gltf;*.glb) wählen
-3. App öffnen → "Rhino-Modell laden" 
-4. .glb Datei vom Handy wählen → Fertig!
-```
-
-**F: Funktioniert es auf meinem iPhone?**
-```
-Nein, nur Chrome auf Android (z.B. Google Pixel) ist zuverlässig.
-Firefox, Safari haben begrenzte WebXR-Unterstützung.
-```
-
-**F: Warum lädt mein Modell nicht?**
-```
-Häufige Gründe:
-1. Falsches Format (.obj, .fbx nicht unterstützt → .glb exportieren)
-2. Zu groß (> 10MB) → Modell in Rhino optimieren
-3. Browser Cache (Hard Reload: Ctrl+Shift+R)
-4. HTTP statt HTTPS (GitHub Pages ist HTTPS ✓)
-```
-
-**F: Kann ich mehrere Objekte platzieren?**
-```
-Ja! Einfach mehrmals auf den Bildschirm tippen = mehrere Klone platzieren.
-```
-
-**F: Kann ich meine Platzierung speichern?**
-```
-Noch nicht, aber geplant! Momentan nur temporär während Session.
-```
-
-## Anforderungen 📋
-
-### Hardware
-- 🔴 **Gerät:** Google Pixel oder ähnlich (mit WebXR Support)
-- 🔴 **Browser:** Chrome 95+ (Android)
-- 🔴 **Internet:** 4G/5G empfohlen
-
-### Software (lokal entwickeln)
-- Git
-- Python 3.7+ (optional, nur für QR-Generator)
-- VS Code (empfohlen)
-
-## Entwicklung 👨‍💻
-
-### Änderungen machen
-
-**App-Logik:** `src/app.js`
-```javascript
-// Hier 3D-Modelle verwalten, Events handlen, etc.
-const sampleModelUrl = '../assets/Test.glb'; // ← Modell URL
-```
-
-**UI Styling:** `src/styles.css`
-```css
-/* Button-Farben, Layouts, etc. */
-background: #4f46e5; /* ← Farben ändern */
-```
-
-**AR Funktionen:** `src/app.js` (Abschnitt "Augmented Reality")
-```javascript
-// AR-Session, Hit-Test, Reticle, Objektplatzierung
-renderer.xr.addEventListener('sessionstart', () => { ... });
-```
-
-### Debuggen
-```
-Browser F12 → Console
-Dort sehen Sie:
-✅ Modell geladen
-❌ Fehler beim Laden
-ℹ️ AR-Support Infos
-```
-
-### Testen
-```bash
-# 1. Lokal im Browser
-http://localhost:8000/src/index.html
-
-# 2. Mit Handy im lokalen Netzwerk
-http://<computer-ip>:8000/src/index.html
-
-# 3. Online (GitHub Pages)
-https://wefoth.github.io/WEBXR_TEST/src/index.html
-```
-
-## Publikation 📤
-
-```bash
-# Änderungen committen
-git add .
-git commit -m "Neue Funktion hinzugefügt"
-
-# Zu GitHub pushen
-git push origin main
-
-# ✅ Automatisch deployed zu GitHub Pages!
-```
-
-Siehe [DEPLOYMENT.md](DEPLOYMENT.md) für Details.
-
-## Browser Support 🌐
-
-| Browser | Platform | Status | Notes |
-|---------|----------|--------|-------|
-| Chrome | Android | ✅ Vollständig | Best-in-class WebXR |
-| Chromium | Android | ✅ Vollständig | Brave, Samsung Internet |
-| Firefox | Android | ⏸️ Begrenzt | WebXR experimentell |
-| Safari | iOS | ❌ Nicht | Kein WebXR Support |
-| Edge | Android | ✅ Vollständig | Chromium-basiert |
-
-## Performance ⚡
-
-### Ziele auf Google Pixel
-- **3D-Modus:** 60 FPS
-- **AR-Modus:** 30-45 FPS
-- **Modell-Load:** < 2s
-- **RAM-Verbrauch:** < 100MB
-
-### Optimierungen
-- Three.js aus CDN (kein lokales Bundle)
-- Effiziente Geometrien
-- Grid Helper (pre-optimiert)
-- Hardware-Beschleunigung
-
-## Erweiterungen 🔮
-
-Geplante Features für später:
-- [ ] Touch-Gesten (Rotate, Scale)
-- [ ] Multi-Objekt Bearbeitung
-- [ ] Persistente Speicherung
-- [ ] Animation Support
-- [ ] Collaborative AR
-
-## Dokumentation 📚
+## Dokumentation
 
 | Datei | Inhalt |
 |-------|--------|
-| [SETUP.md](SETUP.md) | Installation & lokale Entwicklung |
-| [PROJECT_SPEC.md](PROJECT_SPEC.md) | Technische Spezifikationen |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Architektur & Code Details |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | GitHub Pages Deployment |
+| [PROJEKTSTAND.md](PROJEKTSTAND.md) | Aktueller Stand, erledigte Meilensteine, offene Punkte |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Wie die App technisch funktioniert |
+| [PROJECT_SPEC.md](PROJECT_SPEC.md) | Anforderungen, unterstützte Formate/Geräte |
+| [SETUP.md](SETUP.md) | Lokale Entwicklung Schritt für Schritt |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | GitHub-Pages-Deployment & Troubleshooting |
 
-## Behebung von Problemen 🔧
+## Häufige Probleme
 
-### Modell erscheint nicht
-```
-→ F12 Console prüfen auf Fehler
-→ Dateipfad korrekt? (../assets/...)
-→ Format .glb oder .gltf?
-→ Browser Cache löschen (Ctrl+Shift+R)
-```
-
-### AR-Button funktioniert nicht
-```
-→ Chrome verwenden (nicht Firefox!)
-→ Immersive-ar Support? (Info-Box prüfen)
-→ HTTPS? (lokal OK, online HTTPS nötig)
-→ Kamera-Berechtigung geben?
-```
-
-### Buttons überlagern sich
-```
-→ Fenster vergrößern oder Handy drehen
-→ Mobile-responsive Design wird angepasst
-```
-
-## Performance Tipps 💡
-
-1. **Für Echtzeit-Arbeit:** `http://localhost:8000` nutzen
-2. **Modell optimieren:** In Rhino Polygone reduzieren
-3. **Cache-Probleme:** Hard-Reload oder Incognito
-4. **Große Modelle:** In mehrere Parts aufteilen
-
-## Credits 📝
-
-- **Three.js:** 3D-Rendering Engine
-- **WebXR Spec:** W3C Standardisierung
-- **GitHub Pages:** Hosting & CI/CD
-
-## License 📜
-
-Offen zur Verwendung und Erweiterung.
-
-## Support & Kontakt 💬
-
-**Repository:** https://github.com/WEFOTH/WEBXR_TEST  
-**Issues:** GitHub Issues Tab für Bugs/Fehler  
-**Entwickler:** Florian Weininger
+- **Altes Verhalten nach Update:** Chrome cached aggressiv → Hard-Reload (Adresse neu laden, ggf. Browserdaten der Seite löschen)
+- **AR-Button zeigt „AR NOT SUPPORTED":** falscher Browser/Gerät (siehe Tabelle oben) oder Seite nicht über HTTPS geöffnet
+- **Modell lädt nicht:** Format prüfen (.glb bevorzugt), Fehler-Panel auf der Seite lesen
+- **Pages-Deploy schlägt fehl:** Actions-Tab prüfen; der Deploy-Schritt scheitert gelegentlich transient → leerer Commit stößt ihn neu an
 
 ---
 
-## Nächste Schritte 🎯
-
-1. ✅ **Quick Start** → [SETUP.md](SETUP.md)
-2. ✅ **Technisches Verständnis** → [ARCHITECTURE.md](ARCHITECTURE.md)
-3. ✅ **Code-Änderungen machen** → `src/` Dateien bearbeiten
-4. ✅ **Testen & Debuggen** → F12 Console
-5. ✅ **Publizieren** → `git push origin main`
-
-**Viel Spaß! 🚀**
-
----
-
-*Zuletzt aktualisiert: Juli 2026*
+**Entwickler:** Florian Weininger · OTH Regensburg
+*Stand: 07.07.2026*
