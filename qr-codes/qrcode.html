@@ -3,10 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebXR QR Code</title>
+    <title>WALZ QR Einstieg</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        color-scheme: dark;
+        color-scheme: light;
+        --walz-black: #0f0f10;
+        --walz-white: #ffffff;
+        --walz-orange: #f07d00;
+        --walz-border: #d9d9dd;
       }
       * { box-sizing: border-box; }
       body {
@@ -14,22 +24,44 @@
         min-height: 100vh;
         display: grid;
         place-items: center;
-        background: linear-gradient(135deg, #0f172a, #1e293b);
-        color: #f8fafc;
-        font-family: Arial, sans-serif;
+        background: linear-gradient(160deg, #f8f8f8 0%, #ffffff 70%);
+        color: var(--walz-black);
+        font-family: Inter, "Segoe UI", sans-serif;
         padding: 1rem;
       }
       .card {
-        width: min(94vw, 420px);
-        background: rgba(15, 23, 42, 0.95);
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 24px;
-        padding: 1.2rem;
-        box-shadow: 0 20px 45px rgba(0,0,0,0.35);
+        width: min(94vw, 620px);
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid var(--walz-border);
+        border-top: 6px solid var(--walz-orange);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 12px 28px rgba(22, 22, 24, 0.12);
         text-align: center;
       }
+      .brand-bar {
+        display: grid;
+        grid-template-columns: minmax(130px, 1.2fr) minmax(110px, 1fr) minmax(130px, 1.1fr);
+        align-items: center;
+        gap: 0.55rem;
+        margin-bottom: 0.75rem;
+      }
+      .logo {
+        max-height: 30px;
+        width: auto;
+        object-fit: contain;
+      }
+      .logo.oth { justify-self: center; }
+      .logo.interreg { justify-self: end; border-radius: 3px; }
+      .kicker {
+        margin: 0;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        font-weight: 800;
+        color: #2f2f33;
+      }
       h1 {
-        font-size: 1.15rem;
+        font-size: 1.2rem;
         margin: 0 0 0.5rem;
       }
       p {
@@ -37,37 +69,58 @@
         line-height: 1.5;
         margin: 0.35rem 0 0.8rem;
       }
-      img {
+      img.qr {
         width: min(78vw, 260px);
         height: auto;
         display: block;
         margin: 0 auto 0.8rem;
-        border-radius: 16px;
+        border-radius: 14px;
         background: white;
         padding: 0.6rem;
+        border: 1px solid #ececef;
       }
       a.button {
         display: inline-block;
         margin-top: 0.4rem;
         padding: 0.8rem 1rem;
         border-radius: 999px;
-        background: #4f46e5;
-        color: white;
+        background: var(--walz-orange);
+        color: var(--walz-black);
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 700;
+        border: 1px solid #ca6a00;
       }
       .link {
         word-break: break-all;
         font-size: 0.9rem;
-        color: #cbd5e1;
+        color: #4d4d52;
+      }
+      @media (max-width: 700px) {
+        .card {
+          width: min(96vw, 420px);
+        }
+        .brand-bar {
+          grid-template-columns: 1fr;
+          justify-items: start;
+        }
+        .logo.oth,
+        .logo.interreg {
+          justify-self: start;
+        }
       }
     </style>
   </head>
   <body>
     <div class="card">
-      <h1>WebXR Demo öffnen</h1>
+      <div class="brand-bar">
+        <img class="logo walz" src="../assets/branding/walz-logo-horizontal.svg" alt="WALZ Logo" />
+        <img class="logo oth" src="../assets/branding/oth-logo.svg" alt="OTH Regensburg Logo" />
+        <img class="logo interreg" src="../assets/branding/interreg-logo.jpg" alt="Interreg Logo" />
+      </div>
+      <p class="kicker">FORSCHUNGSVORHABEN</p>
+      <h1>WALZ XR Demo öffnen</h1>
       <p>Scanne den QR-Code mit der Handy-Kamera oder einem QR-Scanner.</p>
-      <img src="qrcode.png" alt="QR-Code zur WebXR-Seite" />
+      <img class="qr" src="qrcode.png" alt="QR-Code zur WebXR-Seite" />
       <a class="button" href="https://wefoth.github.io/WEBXR_ANDROID/src/index.html">Zur WebXR-Seite</a>
       <p class="link">https://wefoth.github.io/WEBXR_ANDROID/src/index.html</p>
     </div>
