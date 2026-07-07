@@ -65,6 +65,8 @@ const viewModeSelect = document.getElementById('viewModeSelect');
 const objectSelect = document.getElementById('objectSelect');
 const scaleSlider = document.getElementById('scaleSlider');
 const scaleValue = document.getElementById('scaleValue');
+const rotateSlider = document.getElementById('rotateSlider');
+const rotateValue = document.getElementById('rotateValue');
 
 const sampleModelUrl = '../assets/Test.glb';
 const viewModes = ['original', 'color', 'wireframe', 'metall', 'matt'];
@@ -83,6 +85,7 @@ scene.add(modelRoot);
 let activeModel = null;
 let currentViewMode = 'original';
 let currentScaleFactor = 1;
+let currentRotationDeg = 0;
 
 function createDefaultModel() {
   const group = new THREE.Group();
@@ -168,6 +171,16 @@ function updateScaleText(value) {
   if (precisionText) {
     precisionText.textContent = `Skalierung: ${value.toFixed(2)}×`;
   }
+}
+
+function updateRotateText(value) {
+  if (rotateValue) {
+    rotateValue.textContent = `${Math.round(value)}°`;
+  }
+}
+
+function applyRotationToPlaced(placed) {
+  placed.group.rotation.y = (placed.baseYaw || 0) + THREE.MathUtils.degToRad(placed.rotationDeg || 0);
 }
 
 function updateViewModeText(mode) {
@@ -369,7 +382,7 @@ function updatePrecisionText() {
     return;
   }
 
-  precisionText.textContent = `Skalierung: ${selected.scaleFactor.toFixed(2)}× | Ansicht: ${viewModeLabels[selected.viewMode] || selected.viewMode}`;
+  precisionText.textContent = `Skalierung: ${selected.scaleFactor.toFixed(2)}× | Drehung: ${Math.round(selected.rotationDeg || 0)}° | Ansicht: ${viewModeLabels[selected.viewMode] || selected.viewMode}`;
 }
 
 function updateSelectionText() {
@@ -456,6 +469,13 @@ function selectObject(index) {
     if (scaleSlider) {
       scaleSlider.value = currentScaleFactor;
     }
+    if (typeof next.rotationDeg === 'number') {
+      currentRotationDeg = next.rotationDeg;
+    }
+    if (rotateSlider) {
+      rotateSlider.value = currentRotationDeg;
+    }
+    updateRotateText(currentRotationDeg);
     updateScaleText(currentScaleFactor);
     updateViewModeText(currentViewMode);
     setObjectHighlight(next, true);
@@ -504,23 +524,38 @@ function placeModel() {
     }
   });
 
+  const xrCamera = renderer.xr.getCamera();
+
   if (reticle.visible) {
     clone.position.setFromMatrixPosition(reticle.matrix);
   } else {
     // Fallback ohne Hit-Test: 1,5 m in Blickrichtung platzieren.
-    const xrCamera = renderer.xr.getCamera();
     const direction = new THREE.Vector3();
     xrCamera.getWorldDirection(direction);
     xrCamera.getWorldPosition(clone.position);
     clone.position.addScaledVector(direction, 1.5);
   }
 
+  // Vorderseite zum Betrachter drehen (nur um die Hochachse).
+  const cameraPosition = new THREE.Vector3();
+  xrCamera.getWorldPosition(cameraPosition);
+  const baseYaw = Math.atan2(cameraPosition.x - clone.position.x, cameraPosition.z - clone.position.z);
+
   const axes = createPlacedAxes();
   clone.add(axes);
   applyPlacementSettingsToNode(clone, currentViewMode, currentScaleFactor);
 
   scene.add(clone);
-  placedObjects.push({ group: clone, axes, viewMode: currentViewMode, scaleFactor: currentScaleFactor });
+  const placed = {
+    group: clone,
+    axes,
+    viewMode: currentViewMode,
+    scaleFactor: currentScaleFactor,
+    baseYaw,
+    rotationDeg: currentRotationDeg,
+  };
+  applyRotationToPlaced(placed);
+  placedObjects.push(placed);
   selectObject(placedObjects.length - 1);
   updateStatus(`${placedObjects.length} Objekt(e) platziert – erneut tippen fuer mehr.`);
 }
@@ -630,6 +665,20 @@ if (scaleSlider) {
       selected.scaleFactor = currentScaleFactor;
       selected.group.scale.setScalar(currentScaleFactor);
       updateStatus(`Skalierung: ${currentScaleFactor.toFixed(2)}×`);
+    }
+  });
+}
+
+if (rotateSlider) {
+  rotateSlider.addEventListener('input', () => {
+    currentRotationDeg = Number(rotateSlider.value);
+    updateRotateText(currentRotationDeg);
+
+    const selected = getSelectedObject();
+    if (selected) {
+      selected.rotationDeg = currentRotationDeg;
+      applyRotationToPlaced(selected);
+      updateStatus(`Drehung: ${Math.round(currentRotationDeg)}°`);
     }
   });
 }
