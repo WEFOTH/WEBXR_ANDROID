@@ -2,7 +2,7 @@
 
 *Stand: 07.07.2026*
 
-**Live-URL:** https://wefoth.github.io/WEBXR_TEST/src/index.html
+**Live-URL:** https://wefoth.github.io/WEBXR_ANDROID/src/index.html
 
 ## Konfiguration
 
@@ -11,7 +11,7 @@ GitHub Pages ist auf **„Deploy from a branch"** eingestellt (Branch `main`, Or
 Wichtige Dateien:
 
 - `.nojekyll` im Root — verhindert Jekyll-Verarbeitung, muss vorhanden bleiben
-- relative Pfade verwenden (`../assets/…`), keine absoluten (`/assets/…` bricht unter `/WEBXR_TEST/`)
+- relative Pfade verwenden (`../assets/…`), keine absoluten (`/assets/…` bricht unter `/WEBXR_ANDROID/`)
 
 ## Ablauf
 
@@ -33,7 +33,7 @@ WebXR setzt HTTPS voraus — GitHub Pages liefert das automatisch.
 ### „pages build and deployment" schlägt fehl
 Kommt vor — auch **transient auf GitHub-Seite** (beobachtet am 06.07.2026: Build ok, Deploy-Schritt failed).
 
-1. Actions-Tab öffnen: https://github.com/WEFOTH/WEBXR_TEST/actions → fehlgeschlagenen Lauf ansehen
+1. Actions-Tab öffnen: https://github.com/WEFOTH/WEBXR_ANDROID/actions → fehlgeschlagenen Lauf ansehen
 2. Wenn nur der Deploy-Schritt scheitert: leeren Commit pushen, um den Lauf neu anzustoßen:
    ```powershell
    git commit --allow-empty -m "Retrigger Pages deploy"

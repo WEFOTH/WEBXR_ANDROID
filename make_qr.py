@@ -3,7 +3,7 @@ from pathlib import Path
 
 import qrcode
 
-BASE_URL = 'https://wefoth.github.io/WEBXR_TEST/'
+BASE_URL = 'https://wefoth.github.io/WEBXR_ANDROID/'
 OUT_DIR = Path(__file__).parent / 'qr-codes'
 
 TARGETS = {

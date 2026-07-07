@@ -11,8 +11,8 @@
 ## Lokal starten
 
 ```powershell
-git clone https://github.com/WEFOTH/WEBXR_TEST.git
-cd WEBXR_TEST
+git clone https://github.com/WEFOTH/WEBXR_ANDROID.git
+cd WEBXR_ANDROID
 .\serve.ps1                      # Windows; alternativ: python -m http.server 8000
 ```
 

@@ -2,8 +2,8 @@
 
 Web-App zum Visualisieren und Platzieren von Rhino-3D-Modellen (.glb/.gltf) in Augmented Reality — direkt im Browser, ohne App-Installation.
 
-**Live-Demo:** https://wefoth.github.io/WEBXR_TEST/src/index.html
-**QR-Code zum Scannen:** https://wefoth.github.io/WEBXR_TEST/qr-codes/qrcode.html
+**Live-Demo:** https://wefoth.github.io/WEBXR_ANDROID/src/index.html
+**QR-Code zum Scannen:** https://wefoth.github.io/WEBXR_ANDROID/qr-codes/qrcode.html
 
 > **Meta-Quest-Variante:** Die Weiterentwicklung für Meta Quest (Passthrough-MR, Ebenen-Snap, persistente Anker) liegt im Schwester-Repo [WEBXR_QUEST](https://github.com/WEFOTH/WEBXR_QUEST). Dieses Repo ist dessen Upstream: gemeinsame Verbesserungen entstehen hier und werden per `git merge upstream/main` übernommen.
 
@@ -53,7 +53,7 @@ Web-App zum Visualisieren und Platzieren von Rhino-3D-Modellen (.glb/.gltf) in A
 ## Projektstruktur
 
 ```
-WEBXR_TEST/
+WEBXR_ANDROID/
 ├── src/
 │   ├── index.html        # App-Seite (HUD, Fehler-Panel)
 │   ├── app.js            # Gesamte Logik: Szene, Laden, AR, Platzierung, Anker
@@ -71,8 +71,8 @@ WEBXR_TEST/
 ## Entwicklung
 
 ```powershell
-git clone https://github.com/WEFOTH/WEBXR_TEST.git
-cd WEBXR_TEST
+git clone https://github.com/WEFOTH/WEBXR_ANDROID.git
+cd WEBXR_ANDROID
 .\serve.ps1                # oder: python -m http.server 8000
 # → http://localhost:8000/src/index.html
 ```

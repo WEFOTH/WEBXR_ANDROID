@@ -1,4 +1,4 @@
-# Projektstand WEBXR_TEST
+# Projektstand WEBXR_ANDROID
 
 *Stand: 07.07.2026*
 
@@ -6,7 +6,7 @@
 
 Die Smartphone-AR-App ist funktionsfähig und live deployt. Modelle lassen sich laden, in AR platzieren, auswählen und pro Objekt anpassen (Ansicht/Skalierung/Drehung). Platzierte Objekte sind über die WebXR Anchors API räumlich verankert. Die Meta-Quest-Entwicklung wurde am 07.07.2026 in das eigenständige Repo [WEBXR_QUEST](https://github.com/WEFOTH/WEBXR_QUEST) ausgegliedert (dieses Repo ist dessen Upstream).
 
-**Live:** https://wefoth.github.io/WEBXR_TEST/src/index.html
+**Live:** https://wefoth.github.io/WEBXR_ANDROID/src/index.html
 
 ## Erledigte Meilensteine
 
